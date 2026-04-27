@@ -218,3 +218,107 @@ Ningún dato personal llega al LLM ni se almacena en los objetos de salida.
 - [ ] API REST con FastAPI
 - [ ] NER avanzado para detección de nombres (reemplazar heurística actual)
 - [ ] Soporte para múltiples idiomas y mercados laborales
+
+---
+
+## Referencia de comandos Git
+
+Comandos utilizados para configurar y publicar este repositorio desde cero.
+
+### Crear y configurar el repositorio
+
+```bash
+# Inicializar un repositorio local (uv lo hace automáticamente con `uv init`)
+git init
+
+# Crear el repositorio remoto privado en GitHub (requiere GitHub CLI)
+gh repo create ai-cv-matcher --private --description "descripción del proyecto"
+
+# Vincular el repositorio local con el remoto
+git remote add origin https://github.com/<usuario>/ai-cv-matcher.git
+```
+
+### Preparar y hacer el primer commit
+
+```bash
+# Ver el estado actual del repositorio (archivos modificados, staged, untracked)
+git status
+
+# Agregar archivos específicos al área de staging
+git add archivo.py carpeta/
+
+# Agregar todos los archivos (respetando .gitignore)
+git add .
+
+# Quitar un archivo del staging sin borrarlo del disco
+git rm --cached archivo.py
+
+# Crear un commit con mensaje descriptivo
+git commit -m "feat: descripción del cambio"
+
+# Renombrar la rama actual a 'main'
+git branch -M main
+
+# Subir la rama main al remoto por primera vez y configurar el upstream
+git push -u origin main
+```
+
+### Trabajar con ramas
+
+```bash
+# Ver todas las ramas (locales y remotas)
+git branch -a
+
+# Crear una nueva rama
+git branch develop
+
+# Cambiar a una rama existente
+git checkout develop
+
+# Crear y cambiar a una nueva rama en un solo paso
+git checkout -b feature/nueva-funcionalidad
+
+# Subir una rama local al remoto por primera vez
+git push --set-upstream origin develop
+
+# Subir cambios en una rama que ya tiene upstream configurado
+git push
+```
+
+### Sincronizar ramas
+
+```bash
+# Traer los últimos cambios del remoto sin fusionar
+git fetch origin
+
+# Traer y fusionar los cambios del remoto en la rama actual
+git pull origin main
+
+# Fusionar otra rama en la rama actual (ej: traer main a develop)
+git checkout develop
+git merge main
+
+# Ver el historial de commits en una línea por commit
+git log --oneline
+```
+
+### Flujo de trabajo usado en este proyecto
+
+```bash
+# 1. Crear el repo privado en GitHub
+gh repo create ai-cv-matcher --private
+
+# 2. Agregar archivos y hacer el commit inicial
+git add .
+git commit -m "feat: initial commit"
+
+# 3. Renombrar rama a main, vincular remoto y hacer push
+git branch -M main
+git remote add origin https://github.com/DevForAll/ai-cv-matcher.git
+git push -u origin main
+
+# 4. Crear rama develop localmente (ya existía) y publicarla
+git checkout develop
+git merge main          # asegurar que develop tiene los últimos cambios de main
+git push --set-upstream origin develop
+```
