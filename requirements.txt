@@ -1,0 +1,6 @@
+google-generativeai>=0.8.6
+openai>=2.32.0
+pydantic>=2.13.3
+pymupdf>=1.27.2.3
+python-dotenv>=1.2.2
+tiktoken>=0.12.0
