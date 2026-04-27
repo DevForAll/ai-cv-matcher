@@ -1,0 +1,18 @@
+
+POSICIÓN: Desarrollador Backend Python — Senior
+Empresa: Fintech Lima SAC
+
+REQUISITOS OBLIGATORIOS:
+- 4+ años con Python (Django o FastAPI)
+- Experiencia en PostgreSQL y Redis
+- Conocimiento de APIs REST y microservicios
+- Inglés B2 mínimo
+
+REQUISITOS DESEABLES:
+- Experiencia con Kubernetes o Docker
+- Conocimiento de AWS o GCP
+- Experiencia en sector financiero o fintech peruano
+
+OFRECEMOS:
+- Trabajo remoto
+- S/ 8,000 - S/ 12,000 mensual

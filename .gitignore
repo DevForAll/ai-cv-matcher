@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environment
+.venv/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# IDE - JetBrains
+.idea/
+
+# IDE - VSCode
+.vscode/
+
+# Claude Code (configuración local)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Pipeline outputs
+result_*.md
+data/job_descriptions/*.json
+
+# CVs con posible PII (mantener solo demos en .txt)
+data/cvs_anonimizados/*.pdf
+data/cvs_anonimizados/*.docx
+data/cvs_anonimizados/*.doc

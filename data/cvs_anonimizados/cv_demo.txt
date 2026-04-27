@@ -1,0 +1,28 @@
+
+Juan Carlos Pérez Rodríguez
+DNI: 47123456 | Teléfono: 987654321 | juan.perez@gmail.com
+Jr. Los Álamos 123, Miraflores, Lima
+
+PERFIL PROFESIONAL
+Desarrollador Backend con 4 años de experiencia en Python y Django.
+Especializado en APIs REST y microservicios para el sector financiero.
+
+EXPERIENCIA LABORAL
+2021 - Actualidad: Desarrollador Backend Senior — Banco de Crédito del Perú
+- Desarrollo de APIs REST con Python/Django para app móvil (2M usuarios)
+- Migración de monolito a microservicios con Docker y Kubernetes
+- Integración con SUNAT para validación de facturas electrónicas
+
+2019 - 2021: Desarrollador Backend — Startup Fintech (Lima)
+- Desarrollo de plataforma de pagos con FastAPI y PostgreSQL
+- Implementación de sistema de notificaciones con Celery + Redis
+
+EDUCACIÓN
+2014 - 2019: Ingeniería de Sistemas — Universidad Nacional Mayor de San Marcos
+2023: AWS Certified Solutions Architect - Associate
+
+HABILIDADES TÉCNICAS
+Python, Django, FastAPI, PostgreSQL, Redis, Docker, Kubernetes, Git, AWS
+
+IDIOMAS
+Español: Nativo | Inglés: B2 (TOEFL 95)
