@@ -81,16 +81,14 @@ class LLMClient:
             from openai import OpenAI
             key = api_key or os.getenv("OPENAI_API_KEY")
             if not key:
-                # Fallback temporal para compatibilidad si no hay env var
-                key = "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"
+                raise LLMClientError("OPENAI_API_KEY no encontrada. Configúrala en el archivo .env")
             return OpenAI(api_key=key)
 
         elif self.proveedor == Proveedor.GEMINI:
             import google.generativeai as genai
             key = api_key or os.getenv("GOOGLE_API_KEY")
             if not key:
-                # Fallback temporal
-                key = "GOOGLE_KEY_REVOCADA_Y_ELIMINADA"
+                raise LLMClientError("GOOGLE_API_KEY no encontrada. Configúrala en el archivo .env")
             genai.configure(api_key=key)
             return genai.GenerativeModel(self.modelo)
 
