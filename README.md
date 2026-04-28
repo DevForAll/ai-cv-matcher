@@ -59,7 +59,7 @@ pip install uv
 uv sync
 
 # 4. Configurar variables de entorno
-cp .env.example .env
+cp .env .env
 # Abrir .env y completar con tus API keys
 ```
 
@@ -83,7 +83,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # 4. Configurar variables de entorno
-cp .env.example .env
+cp .env .env
 # Abrir .env y completar con tus API keys
 ```
 
@@ -92,7 +92,7 @@ cp .env.example .env
 Crea el archivo `.env` en la raíz del proyecto a partir de la plantilla:
 
 ```bash
-cp .env.example .env
+cp .env .env
 ```
 
 Contenido del `.env`:
