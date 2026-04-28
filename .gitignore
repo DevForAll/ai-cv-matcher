@@ -11,8 +11,6 @@ wheels/
 
 # Environment variables & secrets
 .env
-.env.*
-!.env.example
 
 # IDE - JetBrains
 .idea/
