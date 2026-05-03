@@ -30,11 +30,14 @@ desktop.ini
 *.log
 logs/
 
-# Pipeline outputs
+# Caché de herramientas
+.ruff_cache/
+
+# Archivos generados en ejecución (pipeline outputs)
 result_*.md
 data/job_descriptions/*.json
-
-# CVs con posible PII (mantener solo demos en .txt)
+data/job_descriptions/*.txt
 data/cvs_anonimizados/*.pdf
 data/cvs_anonimizados/*.docx
 data/cvs_anonimizados/*.doc
+data/cvs_anonimizados/*.txt
