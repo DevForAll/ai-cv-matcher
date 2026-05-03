@@ -1,25 +1,23 @@
 # ============================================================
 # SECCIÓN 3: Extractor estructurado de CVs
 # ============================================================
-from models.schemas import CVEstructurado
-from clients.client_llm import LLMClient
-
-from tools.cv_anonymizer import CVAnonymizer
-import logging
-import fitz
-from pathlib import Path
 import uuid
+from pathlib import Path
 
+import fitz
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s",
-)
-logger = logging.getLogger("cv-matcher.parser")
+from clients.client_llm import LLMClient
+from logger import get_logger
+from models.schemas import CVEstructurado
+from tools.cv_anonymizer import CVAnonymizer
+
+logger = get_logger(__name__)
+
 
 class CVParser:
     """
-    Clase encargada de orquestar el pipeline completo de procesamiento de Curriculums Vitae.
+    Clase encargada de orquestar el pipeline completo de procesamiento de
+    Curriculums Vitae.
 
     Su función es transformar archivos físicos (PDF, DOCX) o texto bruto en objetos
     'CVEstructurado' validados. El proceso incluye la extracción de texto, la
@@ -30,7 +28,7 @@ class CVParser:
     def __init__(self):
         self.anonymizer = CVAnonymizer()
         self.cliente = LLMClient(
-            modelo="gpt-4o-mini",     # Económico para procesamiento masivo
+            modelo="gpt-4o-mini",  # Económico para procesamiento masivo
             temperatura=0.0,
             max_tokens=1200,
         )
@@ -62,6 +60,7 @@ class CVParser:
         """
         try:
             from docx import Document
+
             doc = Document(ruta)
             return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
         except ImportError:
@@ -102,9 +101,10 @@ El 'candidato_id' debe ser exactamente: "{uuid.uuid4()}"
             schema=CVEstructurado,
         )
 
-        logger.info(f"CV_ESTRUCTURADO (Data): {cv_estructurado.model_dump()}")
-        logger.info(f"CV_ESTRUCTURADO (Metadatos): {cv_estructurado.__class__.model_fields}")
-        logger.info(f"CV_ESTRUCTURADO Métodos disponibles: {dir(cv_estructurado)}")
+        logger.debug(
+            "CV estructurado: %s",
+            cv_estructurado.model_dump_json(indent=2, ensure_ascii=False),
+        )
 
         return cv_estructurado
 

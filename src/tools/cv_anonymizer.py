@@ -4,6 +4,7 @@ import re
 # SECCIÓN 2: Anonimizador de CVs
 # ============================================================
 
+
 class CVAnonymizer:
     """
     Clase encargada de la desidentificación de datos sensibles en documentos de CV.
@@ -15,8 +16,10 @@ class CVAnonymizer:
 
     # Conceptos clave:
     # ----------------
-    # PII (Personally Identifiable Information): Datos que permiten identificar a una persona.
-    # NER (Named Entity Recognition): Técnica para identificar entidades como nombres en texto.
+    # PII (Personally Identifiable Information): Datos que permiten identificar a
+                  una persona.
+    # NER (Named Entity Recognition): Técnica para identificar entidades como
+                  nombres en texto.
     # HEURÍSTICA: Es una regla práctica o "atajo" lógico que suele funcionar bien en la
     #             mayoría de los casos, aunque no garantiza el 100% de precisión.
     """

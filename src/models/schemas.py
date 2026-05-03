@@ -1,12 +1,15 @@
-from pydantic import BaseModel, Field
 from typing import Literal
+
+from pydantic import BaseModel, Field
 
 # ============================================================
 # SECCIÓN 1: Schemas Pydantic para CV Matcher
 # ============================================================
 
+
 class Idioma(BaseModel):
     """Representa el dominio de un idioma por parte del candidato."""
+
     idioma: str = Field(description="Nombre del idioma (ej: Inglés, Francés)")
     nivel: str = Field(description="Nivel alcanzado (ej: B2, Nativo, Avanzado)")
 
@@ -25,6 +28,7 @@ class CVEstructurado(BaseModel):
     NO se almacenan aquí. Solo se guardan datos profesionales.
     El ID de candidato es un UUID interno.
     """
+
     candidato_id: str = Field(
         description="UUID interno del candidato (sin relación al documento original)"
     )
@@ -32,8 +36,7 @@ class CVEstructurado(BaseModel):
         description="Nivel inferido del total de años de experiencia"
     )
     anos_experiencia: float = Field(
-        ge=0,
-        description="Total de años de experiencia profesional estimados"
+        ge=0, description="Total de años de experiencia profesional estimados"
     )
     skills_tecnicos: list[str] = Field(
         description="Lista de tecnologías, herramientas y habilidades técnicas"
@@ -48,16 +51,12 @@ class CVEstructurado(BaseModel):
         description="Lista de títulos de cargo (sin empresa ni fechas exactas)"
     )
     nivel_educacion: Literal["tecnico", "bachiller", "licenciado", "magister", "doctor"]
-    carreras: list[str] = Field(
-        description="Carreras o especialidades estudiadas"
-    )
+    carreras: list[str] = Field(description="Carreras o especialidades estudiadas")
     certificaciones: list[str] = Field(
         default_factory=list,
-        description="Certificaciones profesionales (AWS, PMP, CPA, etc.)"
+        description="Certificaciones profesionales (AWS, PMP, CPA, etc.)",
     )
-    idiomas: list[Idioma] = Field(
-        description="Lista de idiomas y sus niveles"
-    )
+    idiomas: list[Idioma] = Field(description="Lista de idiomas y sus niveles")
     resumen_perfil: str = Field(
         description="Resumen objetivo del perfil profesional en 2-3 oraciones"
     )
@@ -72,16 +71,28 @@ class JobDescription(BaseModel):
     educativo requeridos. Facilita la comparación objetiva entre el perfil de un candidato
     y las necesidades reales del puesto.
     """
+
     jd_id: str = Field(description="UUID interno de la oferta de trabajo")
     titulo_puesto: str = Field(description="Nombre del cargo o posición")
     nivel_requerido: Literal["junior", "semi-senior", "senior", "lead"] = Field(
         description="Nivel de seniority buscado"
     )
-    anos_experiencia_min: float = Field(description="Años mínimos de experiencia requerida")
-    skills_requeridos: list[str] = Field(description="Habilidades obligatorias (must-have)")
-    skills_deseables: list[str] = Field(description="Habilidades valoradas (nice-to-have)")
-    industria_preferida: list[str] = Field(description="Sectores de experiencia deseados")
+    anos_experiencia_min: float = Field(
+        description="Años mínimos de experiencia requerida"
+    )
+    skills_requeridos: list[str] = Field(
+        description="Habilidades obligatorias (must-have)"
+    )
+    skills_deseables: list[str] = Field(
+        description="Habilidades valoradas (nice-to-have)"
+    )
+    industria_preferida: list[str] = Field(
+        description="Sectores de experiencia deseados"
+    )
     nivel_educacion_minimo: str = Field(description="Grado académico mínimo requerido")
-    idiomas_requeridos: list[Idioma] = Field(description="Lista de idiomas y niveles mínimos")
-    descripcion_rol: str = Field(description="Descripción textual de las responsabilidades")
-
+    idiomas_requeridos: list[Idioma] = Field(
+        description="Lista de idiomas y niveles mínimos"
+    )
+    descripcion_rol: str = Field(
+        description="Descripción textual de las responsabilidades"
+    )

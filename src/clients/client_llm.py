@@ -6,25 +6,32 @@ soportando salidas estructuradas (Pydantic) y texto plano.
 
 import os
 import time
-import logging
 from enum import Enum
-from typing import Optional, TypeVar, Type, Union, overload, Any
-from pydantic import BaseModel
+from typing import Any, Optional, Type, TypeVar, Union, overload
+
 import tiktoken
+from pydantic import BaseModel
+
+from logger import get_logger
 
 # Tipado genérico para modelos Pydantic
 T = TypeVar("T", bound=BaseModel)
 
-logger = logging.getLogger("shared.llm-client")
+logger = get_logger(__name__)
+
 
 class Proveedor(str, Enum):
     """Enumeración de proveedores soportados."""
+
     OPENAI = "openai"
     GEMINI = "gemini"
 
+
 class LLMClientError(Exception):
     """Excepción base para errores del cliente LLM."""
+
     pass
+
 
 class LLMClient:
     """
@@ -36,13 +43,13 @@ class LLMClient:
     """
 
     def __init__(
-            self,
-            proveedor: Proveedor = Proveedor.OPENAI,
-            modelo: str = "gpt-4o-mini",
-            temperatura: float = 0.0,
-            max_tokens: int = 1500,
-            max_reintentos: int = 3,
-            api_key: Optional[str] = None
+        self,
+        proveedor: Proveedor = Proveedor.OPENAI,
+        modelo: str = "gpt-4o-mini",
+        temperatura: float = 0.0,
+        max_tokens: int = 1500,
+        max_reintentos: int = 3,
+        api_key: Optional[str] = None,
     ):
         """
         Inicializa el cliente con la configuración deseada.
@@ -71,24 +78,32 @@ class LLMClient:
             self._encoding = tiktoken.get_encoding("cl100k_base")
 
         logger.info(
-            f"LLMClient inicializado | Proveedor: {proveedor.value} | "
-            f"Modelo: {modelo} | Temp: {temperatura}"
+            "LLMClient inicializado | Proveedor: %s | Modelo: %s | Temp: %s",
+            proveedor.value,
+            modelo,
+            temperatura,
         )
 
     def _init_cliente(self, api_key: Optional[str]) -> Any:
         """Configura e instancia el SDK del proveedor seleccionado."""
         if self.proveedor == Proveedor.OPENAI:
             from openai import OpenAI
+
             key = api_key or os.getenv("OPENAI_API_KEY")
             if not key:
-                raise LLMClientError("OPENAI_API_KEY no encontrada. Configúrala en el archivo .env")
+                raise LLMClientError(
+                    "OPENAI_API_KEY no encontrada. Configúrala en el archivo .env"
+                )
             return OpenAI(api_key=key)
 
         elif self.proveedor == Proveedor.GEMINI:
             import google.generativeai as genai
+
             key = api_key or os.getenv("GOOGLE_API_KEY")
             if not key:
-                raise LLMClientError("GOOGLE_API_KEY no encontrada. Configúrala en el archivo .env")
+                raise LLMClientError(
+                    "GOOGLE_API_KEY no encontrada. Configúrala en el archivo .env"
+                )
             genai.configure(api_key=key)
             return genai.GenerativeModel(self.modelo)
 
@@ -97,7 +112,6 @@ class LLMClient:
     def contar_tokens(self, texto: str) -> int:
         """Estima la cantidad de tokens en un texto."""
         return len(self._encoding.encode(texto))
-
 
     @overload
     def llamar(self, system_prompt: str, user_message: str, schema: Type[T]) -> T:
@@ -110,10 +124,7 @@ class LLMClient:
         ...
 
     def llamar(
-            self,
-            system_prompt: str,
-            user_message: str,
-            schema: Optional[Type[T]] = None
+        self, system_prompt: str, user_message: str, schema: Optional[Type[T]] = None
     ) -> str | None | Any:
         """
         Ejecuta una llamada al LLM con lógica de reintento y validación.
@@ -127,25 +138,30 @@ class LLMClient:
             Union[BaseModel, str]: Instancia del esquema si se proveyó, o string de texto.
         """
         tokens_in = self.contar_tokens(system_prompt + user_message)
-        logger.info(f"Llamada LLM | Tokens Estimados: {tokens_in}")
+        logger.info("Llamada LLM | Tokens estimados: %d", tokens_in)
 
         for intento in range(1, self.max_reintentos + 1):
             try:
                 inicio = time.time()
 
                 if self.proveedor == Proveedor.OPENAI:
-                    resultado = self._ejecutar_openai(system_prompt, user_message, schema)
+                    resultado = self._ejecutar_openai(
+                        system_prompt, user_message, schema
+                    )
                 else:
-                    resultado = self._ejecutar_gemini(system_prompt, user_message, schema)
+                    resultado = self._ejecutar_gemini(
+                        system_prompt, user_message, schema
+                    )
 
                 duracion = round(time.time() - inicio, 2)
-                logger.info(f"Éxito | Intento: {intento} | Duración: {duracion}s")
+                logger.info("Éxito | Intento: %d | Duración: %.2fs", intento, duracion)
 
-                # Log de depuración para salidas estructuradas
                 if schema:
-                    logger.info(f"--- [DEBUG] Datos Extraídos ({schema.__name__}) ---")
-                    logger.info(f"\n{resultado.model_dump_json(indent=2, ensure_ascii=False)}")
-                    logger.info("-" * 50)
+                    logger.debug(
+                        "Datos extraídos (%s):\n%s",
+                        schema.__name__,
+                        resultado.model_dump_json(indent=2, ensure_ascii=False),
+                    )
 
                 return resultado
 
@@ -154,19 +170,26 @@ class LLMClient:
                     self._manejar_error_fatal(e)
 
                 if intento == self.max_reintentos:
-                    logger.error(f"Error final tras {intento} intentos: {str(e)}")
+                    logger.error("Error final tras %d intentos: %s", intento, e)
                     raise LLMClientError(f"Fallo crítico en LLM: {str(e)}") from e
 
-                tiempo_espera = 2 ** intento
-                logger.warning(f"Error temporal ({type(e).__name__}): {e}. Reintentando en {tiempo_espera}s...")
+                tiempo_espera = 2**intento
+                logger.warning(
+                    "Error temporal (%s): %s. Reintentando en %ds...",
+                    type(e).__name__,
+                    e,
+                    tiempo_espera,
+                )
                 time.sleep(tiempo_espera)
         return None
 
-    def _ejecutar_openai(self, system: str, user: str, schema: Optional[Type[T]]) -> Union[T, str]:
+    def _ejecutar_openai(
+        self, system: str, user: str, schema: Optional[Type[T]]
+    ) -> Union[T, str]:
         """Lógica interna para OpenAI."""
         mensajes = [
             {"role": "system", "content": system},
-            {"role": "user", "content": user}
+            {"role": "user", "content": user},
         ]
 
         if schema:
@@ -187,10 +210,13 @@ class LLMClient:
         )
         return completion.choices[0].message.content
 
-    def _ejecutar_gemini(self, system: str, user: str, schema: Optional[Type[T]]) -> Union[T, str]:
+    def _ejecutar_gemini(
+        self, system: str, user: str, schema: Optional[Type[T]]
+    ) -> Union[T, str]:
         """Lógica interna para Google Gemini."""
-        import google.generativeai as genai
         import json
+
+        import google.generativeai as genai
 
         prompt = f"{system}\n\n{user}"
 
@@ -204,8 +230,7 @@ class LLMClient:
             config_params["response_schema"] = schema.model_json_schema()
 
         response = self._cliente.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(**config_params)
+            prompt, generation_config=genai.GenerationConfig(**config_params)
         )
 
         if schema:
@@ -221,6 +246,7 @@ class LLMClient:
     def _es_error_fatal(e: Exception) -> bool:
         """Identifica errores que no vale la pena reintentar."""
         from openai import BadRequestError
+
         if isinstance(e, (BadRequestError, ValueError, TypeError)):
             return True
         if "api_key" in str(e).lower() or "authentication" in str(e).lower():
@@ -231,6 +257,9 @@ class LLMClient:
     def _manejar_error_fatal(e: Exception):
         """Procesa errores fatales antes de lanzarlos."""
         from openai import BadRequestError
+
         if isinstance(e, BadRequestError) and "response_format" in str(e).lower():
-            logger.error("Esquema Pydantic incompatible con Structured Outputs de OpenAI.")
+            logger.error(
+                "Esquema Pydantic incompatible con Structured Outputs de OpenAI."
+            )
         raise e

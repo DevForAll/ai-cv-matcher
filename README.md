@@ -21,6 +21,13 @@ ai-cv-matcher/
 ├── src/
 │   ├── clients/
 │   │   └── client_llm.py       # Cliente unificado OpenAI / Google Gemini
+│   ├── logger/
+│   │   ├── __init__.py         # API pública: get_logger, setup_logging, LogContext
+│   │   ├── config.py           # LoggingConfig (desde variables de entorno)
+│   │   ├── context.py          # LogContext — correlation ID con contextvars
+│   │   ├── filters.py          # SensitiveDataFilter, ContextFilter
+│   │   ├── formatters.py       # DevFormatter (coloreado), JSONFormatter
+│   │   └── core.py             # Configuración del logger raíz
 │   ├── models/
 │   │   └── schemas.py          # Schemas Pydantic: CVEstructurado, JobDescription
 │   ├── tools/
@@ -58,8 +65,11 @@ pip install uv
 # 3. Crear el entorno virtual e instalar dependencias (usa uv.lock para versiones exactas)
 uv sync
 
-# 4. Configurar variables de entorno
-cp .env .env
+# 4. Instalar el proyecto en modo editable (registra src/ como raíz de paquetes)
+uv pip install -e .
+
+# 5. Configurar variables de entorno
+cp .env.example .env
 # Abrir .env y completar con tus API keys
 ```
 
@@ -82,8 +92,11 @@ source .venv/bin/activate
 # 3. Instalar dependencias
 pip install -r requirements.txt
 
-# 4. Configurar variables de entorno
-cp .env .env
+# 4. Instalar el proyecto en modo editable (registra src/ como raíz de paquetes)
+pip install -e .
+
+# 5. Configurar variables de entorno
+cp .env.example .env
 # Abrir .env y completar con tus API keys
 ```
 
@@ -92,7 +105,7 @@ cp .env .env
 Crea el archivo `.env` en la raíz del proyecto a partir de la plantilla:
 
 ```bash
-cp .env .env
+cp .env.example .env
 ```
 
 Contenido del `.env`:
@@ -103,6 +116,83 @@ GOOGLE_API_KEY=AIza...
 ```
 
 > Solo necesitas configurar la key del proveedor que vayas a usar. Por defecto el sistema usa **OpenAI (gpt-4o-mini)**.
+
+## Logging
+
+El módulo `src/logger/` centraliza toda la configuración de logs. Todos los loggers del proyecto viven bajo la jerarquía `ai-cv-matcher.*` y se configuran una única vez al arrancar la aplicación.
+
+### Variables de entorno
+
+| Variable | Valores | Por defecto | Descripción |
+|---|---|---|---|
+| `LOG_LEVEL` | `DEBUG` `INFO` `WARNING` `ERROR` `CRITICAL` | `INFO` | Nivel mínimo de emisión |
+| `LOG_FORMAT` | `text` `json` | `text` | Formato de salida en consola |
+| `LOG_FILE_ENABLED` | `true` `false` | `false` | Activa el handler de archivo con rotación |
+| `LOG_FILE_PATH` | ruta | `logs/app.log` | Ubicación del archivo de log |
+| `LOG_FILE_MAX_MB` | entero | `10` | Tamaño máximo por archivo en MB |
+| `LOG_FILE_BACKUP_COUNT` | entero | `5` | Número de archivos rotados a conservar |
+| `APP_NAME` | texto | `ai-cv-matcher` | Prefijo del namespace de todos los loggers |
+| `APP_ENV` | `development` `staging` `production` | `development` | `production` fuerza `LOG_FORMAT=json` |
+
+> Configura estas variables en tu `.env`. Ver `.env.example` para la plantilla completa.
+
+### Usar el logger en un módulo
+
+```python
+from logger import get_logger
+
+logger = get_logger(__name__)
+
+logger.info("Procesando archivo", extra={"archivo": "cv_demo.pdf"})
+logger.warning("python-docx no instalado")
+logger.exception("Fallo en llamada LLM")
+```
+
+`get_logger` acepta `__name__`, un nombre corto (`"tools.cv_parser"`) o el nombre completo con prefijo (`"ai-cv-matcher.tools.cv_parser"`). Todos son equivalentes.
+
+### Correlacionar una operación completa
+
+`LogContext` inyecta un ID corto en todos los logs producidos dentro del bloque, sin necesidad de pasarlo manualmente:
+
+```python
+from logger import get_logger, LogContext
+
+logger = get_logger(__name__)
+
+with LogContext("parse_cv") as cid:
+    logger.info("Iniciando procesamiento")   # [a1b2c3d4] | ...
+    cv = cv_parser.parsear_archivo_cv(ruta)  # todos los logs internos llevan el mismo cid
+    logger.info("CV procesado correctamente")
+```
+
+### Formato de salida
+
+**Desarrollo (`LOG_FORMAT=text`)**
+
+```
+2026-04-28 15:30:01 | INFO     | [a1b2c3d4] | ai-cv-matcher.clients.llm | LLMClient inicializado | Proveedor: openai | Modelo: gpt-4o-mini | Temp: 0.0
+2026-04-28 15:30:03 | INFO     | [a1b2c3d4] | ai-cv-matcher.tools.cv_parser | CV procesado correctamente
+```
+
+**Producción (`LOG_FORMAT=json` o `APP_ENV=production`)**
+
+```json
+{"timestamp": "2026-04-28T15:30:01+00:00", "level": "INFO", "logger": "ai-cv-matcher.clients.llm", "message": "LLMClient inicializado | Proveedor: openai | Modelo: gpt-4o-mini | Temp: 0.0", "correlation_id": "a1b2c3d4", "module": "client_llm", "function": "__init__", "line": 73}
+```
+
+### Seguridad
+
+`SensitiveDataFilter` redacta automáticamente cualquier API key o bearer token que aparezca en un mensaje de log antes de emitirlo:
+
+```
+# Lo que se escribe:
+logger.info(f"Usando key: {api_key}")
+
+# Lo que se emite:
+INFO | Usando key: [OPENAI_KEY_REDACTED]
+```
+
+Los dumps completos de objetos Pydantic (útiles en depuración) se emiten en nivel `DEBUG` y permanecen silenciosos con la configuración por defecto (`LOG_LEVEL=INFO`).
 
 ## Uso
 
@@ -125,9 +215,9 @@ El pipeline ejecuta dos demos:
 
 ```python
 from pathlib import Path
-from src.tools.cv_anonymizer import CVAnonymizer
-from src.tools.cv_parser import CVParser
-from src.tools.jd_parser import JDParser
+from tools.cv_anonymizer import CVAnonymizer
+from tools.cv_parser import CVParser
+from tools.jd_parser import JDParser
 
 # Anonimizar texto de un CV
 anonymizer = CVAnonymizer()
@@ -211,7 +301,7 @@ Ningún dato personal llega al LLM ni se almacena en los objetos de salida.
 | `python-dotenv` | >=1.2.2 | Carga de variables de entorno |
 | `tiktoken` | >=0.12.0 | Conteo de tokens (estimación de costos) |
 
-## Roadmap
+## Hoja de ruta
 
 - [ ] Módulo 02: Indexación vectorial con Qdrant
 - [ ] Matching CV vs JD con scoring cuantitativo
