@@ -26,8 +26,6 @@ regexes = [
     # Placeholders con puntos suspensivos
     '''AIza\.{3}''',
     '''sk-\.{3}''',
-    # Clave ya revocada del historial (evita falsos positivos en git log)
-    '''GOOGLE_KEY_REVOCADA_Y_ELIMINADA''',
 ]
 paths = [
     '''\.env\.example''',
