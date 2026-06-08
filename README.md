@@ -127,7 +127,7 @@ GOOGLE_API_KEY=AIza...
 
 ## Seguridad — Prevención de secretos expuestos
 
-Este proyecto usa [gitleaks](https://github.com/gitleaks/gitleaks) a través del framework [pre-commit](https://pre-commit.com/) para bloquear automáticamente cualquier commit que contenga API keys u otros secretos antes de que entren al historial de git.
+Este proyecto usa [gitleaks](https://github.com/gitleaks/gitleaks) a través del framework [pre-commit](https://pre-commit.com/) para bloquear automáticamente cualquier commit que contenga API keys u otros secretos antes de que entren al historial de git. Ver [docs/seguridad.md](docs/seguridad.md) para la documentación completa, incluyendo qué hacer si una clave queda expuesta.
 
 ### Activar la protección (obligatorio al clonar)
 

@@ -88,6 +88,15 @@ cv-matcher/
 - El `BiasDetector` actúa como capa de post-procesamiento sobre el score crudo.
 - Cada evaluación se loguea para auditoría interna de sesgo.
 
+## Seguridad — Reglas obligatorias
+
+- **NUNCA** escribir API keys, tokens o contraseñas en el código fuente, ni siquiera como comentario o valor temporal.
+- Todas las credenciales van exclusivamente en `.env` (está en `.gitignore`).
+- El archivo `.env.example` solo puede contener claves vacías o con placeholder (`=` o `=sk-...`).
+- Antes de sugerir cualquier código que use una API key, verificar que el valor se lee desde `os.getenv()` o `python-dotenv`.
+- Si al revisar el código encuentras una clave hardcodeada, reemplázala por `os.getenv()` inmediatamente sin esperar instrucción.
+- El proyecto usa `pre-commit` + `gitleaks` para bloquear commits con secretos. Si el hook falla, investigar antes de saltarlo.
+
 ## Comandos específicos
 
 ```bash
