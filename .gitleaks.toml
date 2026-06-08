@@ -1,0 +1,35 @@
+[extend]
+useDefault = true
+
+# Reglas explícitas para patrones de API keys por su forma, sin depender del contexto
+[[rules]]
+id = "google-api-key-explicit"
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+tags = ["google", "api-key"]
+
+[[rules]]
+id = "openai-api-key-explicit"
+description = "OpenAI API Key"
+regex = '''sk-[A-Za-z0-9]{20,}'''
+tags = ["openai", "api-key"]
+
+[[rules]]
+id = "openai-project-key-explicit"
+description = "OpenAI Project API Key"
+regex = '''sk-proj-[A-Za-z0-9\-_]{20,}'''
+tags = ["openai", "api-key"]
+
+[allowlist]
+description = "Placeholders y ejemplos en documentación"
+regexes = [
+    # Placeholders con puntos suspensivos
+    '''AIza\.{3}''',
+    '''sk-\.{3}''',
+    # Clave ya revocada del historial (evita falsos positivos en git log)
+    '''GOOGLE_KEY_REVOCADA_Y_ELIMINADA''',
+]
+paths = [
+    '''\.env\.example''',
+    '''\.gitleaks\.toml''',
+]
