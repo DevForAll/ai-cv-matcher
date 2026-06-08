@@ -71,6 +71,10 @@ uv pip install -e .
 # 5. Configurar variables de entorno
 cp .env.example .env
 # Abrir .env y completar con tus API keys
+
+# 6. Activar protección contra secretos expuestos
+uv tool install pre-commit
+pre-commit install
 ```
 
 ### Con pip
@@ -98,6 +102,10 @@ pip install -e .
 # 5. Configurar variables de entorno
 cp .env.example .env
 # Abrir .env y completar con tus API keys
+
+# 6. Activar protección contra secretos expuestos
+pip install pre-commit
+pre-commit install
 ```
 
 ## Configuracion
@@ -116,6 +124,83 @@ GOOGLE_API_KEY=AIza...
 ```
 
 > Solo necesitas configurar la key del proveedor que vayas a usar. Por defecto el sistema usa **OpenAI (gpt-4o-mini)**.
+
+## Seguridad — Prevención de secretos expuestos
+
+Este proyecto usa [gitleaks](https://github.com/gitleaks/gitleaks) a través del framework [pre-commit](https://pre-commit.com/) para bloquear automáticamente cualquier commit que contenga API keys u otros secretos antes de que entren al historial de git.
+
+### Activar la protección (obligatorio al clonar)
+
+```bash
+# 1. Instalar pre-commit
+pip install pre-commit
+# o con uv:
+uv tool install pre-commit
+
+# 2. Registrar el hook en tu clon local (solo una vez)
+pre-commit install
+```
+
+A partir de ese momento, cada `git commit` ejecuta gitleaks automáticamente. Si detecta un secreto, **el commit se cancela** y muestra qué archivo y línea contiene el problema.
+
+### Qué detecta
+
+| Tipo de secreto | Ejemplo de patrón |
+|---|---|
+| Google API Key | `AIza[A-Za-z0-9_-]{35}` |
+| OpenAI API Key | `sk-[A-Za-z0-9]{20,}` |
+| OpenAI Project Key | `sk-proj-[A-Za-z0-9_-]{20,}` |
+| AWS Access Key | `AKIA[0-9A-Z]{16}` |
+| GitHub PAT | `gh[pousr]_[A-Za-z0-9]{36,}` |
+| Slack Bot Token | `xoxb-[0-9]+-[A-Za-z0-9]+` |
+| + todas las reglas por defecto de gitleaks | |
+
+### Archivos de configuración
+
+| Archivo | Propósito |
+|---|---|
+| [.pre-commit-config.yaml](.pre-commit-config.yaml) | Define qué hooks se ejecutan y con qué versión de gitleaks |
+| [.gitleaks.toml](.gitleaks.toml) | Reglas adicionales y exclusiones (placeholders, rutas ignoradas) |
+
+### Flujo normal de trabajo
+
+```
+git add mis_cambios.py
+git commit -m "feat: nueva funcionalidad"
+  └─ pre-commit ejecuta gitleaks
+       ├─ Sin secretos → commit pasa normalmente
+       └─ Con secreto  → commit cancelado, se muestra la ubicación del problema
+```
+
+### Si gitleaks bloquea un falso positivo
+
+Si un valor detectado **no es un secreto real** (por ejemplo, un ID de prueba con formato similar a una key), tienes dos opciones:
+
+**Opción 1 — Agregar una excepción en `.gitleaks.toml`** (recomendado para patrones recurrentes):
+```toml
+[allowlist]
+regexes = ["tu-patron-especifico"]
+```
+
+**Opción 2 — Marcar la línea puntual** con un comentario inline:
+```python
+TEST_ID = "AIzaFAKEVALUEFORTESTING12345678901"  # gitleaks:allow
+```
+
+### Ejecutar el escaneo manualmente
+
+```bash
+# Escanear solo los archivos staged (igual que el hook)
+pre-commit run gitleaks
+
+# Escanear todos los archivos del repo
+pre-commit run gitleaks --all-files
+
+# Escanear el historial completo de commits
+gitleaks detect --config .gitleaks.toml
+```
+
+> Las API keys **nunca** deben estar en el código. Siempre en `.env` (ya incluido en `.gitignore`). Ver `.env.example` para la plantilla.
 
 ## Logging
 
